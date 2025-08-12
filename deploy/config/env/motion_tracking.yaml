@@ -1,0 +1,46 @@
+_target_: envs.motion_tracking.MotionTracking
+_recursive_: False
+config:
+  device: ${device}
+  simulator: ${sim}
+  obs: ${obs}
+  control: ${control}
+  collect_dataset: True
+  selected_keypoints_num: 13
+  selected_keypoints_id: [1, 4, 6, 7, 10, 12, 17, 19, 24, 21, 23, 25, 26]
+  motion:
+    asset:
+      asset_root: ${asset.asset_root}
+      asset_file: g1_29dof_anneal_23dof_only.xml
+    motion_file: data/motion/g1_29dof_anneal_23dof/asap_single/0-TairanTestbed_TairanTestbed_CR7_video_CR7_level1_filter_amass.pkl
+    extend_config:
+      - joint_name: "left_hand_link"
+        parent_name: "left_elbow_link"
+        pos: [0.25, 0.0, 0.0]
+        rot: [1.0, 0.0, 0.0, 0.0] # w x y z
+      - joint_name: "right_hand_link"
+        parent_name: "right_elbow_link"
+        pos: [0.25, 0.0, 0.0]
+        rot: [1.0, 0.0, 0.0, 0.0] # w x y z
+      - joint_name: "head_link"
+        parent_name: "torso_link"
+        pos: [0.0, 0.0, 0.42]
+        rot: [1.0, 0.0, 0.0, 0.0] # w x y z
+    align_method: 'xy'
+    smooth_init: False
+    smooth_init_frames: 30
+    smooth_end: False
+    smooth_end_frames: 20
+    default_angles: [
+      -0.1, 0.0, 0.0,
+      0.3,
+      -0.2, 0.0,
+      -0.1, 0.0, 0.0,
+      0.3,
+      -0.2, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 
+      0.0, 0.0, 0.0,
+      0.0
+    ]

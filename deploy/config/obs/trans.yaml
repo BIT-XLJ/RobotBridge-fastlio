@@ -1,0 +1,39 @@
+obs_list: [
+  episodic_obs
+]
+
+obs_scales: {
+  base_ang_vel: 0.25,
+  projected_gravity: 1.0,
+  dof_pos: 1.0,
+  dof_vel: 0.05,
+  actions: 1.0,
+  root_tracking_real: [
+    1.0,1.0,1.0,1.0,1.0,1.0,
+    2.0,2.0,
+    0.25
+  ],
+  joint_tracking: 1.0,
+  history_actor: 1.0,
+  episodic_obs: 1.0
+}
+
+obs_auxiliary:
+  episodic_obs: {
+      base_ang_vel: 20,
+      projected_gravity: 20,
+      dof_pos: 20,
+      dof_vel: 20,
+      actions: 20,
+      root_tracking_real: 20,
+      joint_tracking: 20
+    }
+
+obs_dims:
+  - base_ang_vel: 3
+  - projected_gravity: 3
+  - dof_pos: ${asset.num_action}
+  - dof_vel: ${asset.num_action}
+  - actions: ${asset.num_action}
+  - root_tracking_real: 9
+  - joint_tracking: ${asset.num_action}

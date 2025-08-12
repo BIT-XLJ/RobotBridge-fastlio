@@ -1,0 +1,18 @@
+low_dt: 0.005
+decimation: 4
+obs_clip_value: 100
+action_scale: 0.25
+action_clip_value: 100
+torque_clip_value: [
+  88,88,88,
+  139,
+  50,50,
+  88,88,88,
+  139,
+  50,50,
+  88,50,50,
+  25,25,25,
+  25,
+  25,25,25,
+  25
+]

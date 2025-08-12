@@ -1,0 +1,38 @@
+obs_list: [
+  base_ang_vel,
+  projected_gravity,
+  dof_pos,
+  dof_vel,
+  actions,
+  ref_motion_phase,
+  history_actor,
+]
+
+obs_scales: {
+  base_ang_vel: 0.25,
+  projected_gravity: 1.0,
+  dof_pos: 1.0,
+  dof_vel: 0.05,
+  actions: 1.0,
+  ref_motion_phase: 1.0,
+  history_actor: 1.0,
+}
+
+obs_auxiliary:
+  history_actor: {
+    base_ang_vel: 4,
+    projected_gravity: 4,
+    dof_pos: 4,
+    dof_vel: 4,
+    actions: 4,
+    ref_motion_phase: 4,
+  }
+
+obs_dims:
+  - base_lin_vel: 3
+  - base_ang_vel: 3
+  - projected_gravity: 3
+  - dof_pos: ${asset.num_action}
+  - dof_vel: ${asset.num_action}
+  - actions: ${asset.num_action}
+  - ref_motion_phase: 1

@@ -1,0 +1,47 @@
+obs_list: [
+  base_ang_vel,
+  projected_gravity,
+  dof_pos,
+  dof_vel,
+  actions,
+  root_tracking,
+  keypoint_tracking,
+  joint_tracking,
+  history_actor,
+]
+
+obs_scales: {
+  base_ang_vel: 0.25,
+  projected_gravity: 1.0,
+  dof_pos: 1.0,
+  dof_vel: 0.05,
+  actions: 1.0,
+  root_tracking: [1.0, 1.0, 1.0, 
+  1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  2.0, 2.0, 0.25],
+  keypoint_tracking: 1.0,
+  joint_tracking: 1.0,
+  history_actor: 1.0,
+}
+
+obs_auxiliary:
+  history_actor: {
+    base_ang_vel: 4,
+    projected_gravity: 4,
+    dof_pos: 4,
+    dof_vel: 4,
+    actions: 4,
+    joint_tracking: 4,
+    keypoint_tracking: 4,
+    root_tracking: 4,
+  }
+
+obs_dims:
+  - base_ang_vel: 3
+  - projected_gravity: 3
+  - dof_pos: ${asset.num_action}
+  - dof_vel: ${asset.num_action}
+  - actions: ${asset.num_action}
+  - root_tracking: 12
+  - keypoint_tracking: 39
+  - joint_tracking: ${asset.num_action}

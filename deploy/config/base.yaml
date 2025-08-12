@@ -1,0 +1,10 @@
+defaults:
+  - _self_
+  - asset: g1_29dof_anneal_23dof
+  - control: g1_29dof_anneal_23dof
+  - obs: asap_single
+  - sim: mujoco
+  - agent: default
+  - env: motion_tracking
+
+device: 'cuda'

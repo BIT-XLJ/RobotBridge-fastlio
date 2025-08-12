@@ -1,0 +1,6 @@
+_target_: agents.base_agent.BaseAgent
+_recursive_: True
+env: ${env}
+config:
+  checkpoint: ./data/model/g1_29dof_anneal_23dof/asap_single/C7-single/model_60000.pt
+  device: ${device}
