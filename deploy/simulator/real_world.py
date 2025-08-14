@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 from simulator.base_sim import BaseSim
 from loguru import logger
+import torch
 
 import sys
 sys.path.append('../')
@@ -18,7 +19,7 @@ from unitree_sdk2.lcm_types.pd_tau_targets_lcmt import pd_tau_targets_lcmt
 from utils.helpers import get_gravity, get_rpy
 from utils.pos_server import fast_lio_odometry_lcmt
 from utils.local2world import fk_dof
-from utils.torch_utils import my_quat_rotate
+from utils.motion_lib.rotations import my_quat_rotate
 import numpy as np
 
 # 定义fast_lio里程计LCM消息类型
@@ -102,6 +103,15 @@ class RealWorld(BaseSim):
         self.fast_lio_position = np.array([0.0, 0.0, 0.0], dtype=np.float32)
         self.fast_lio_quat = np.array([0., 0., 0., 1.], dtype=np.float32)
         self.Odom_offset = np.array([0.0, 0.0, 0.0], dtype=np.float32)        #这里要记得修改
+        self.old_root_trans = np.array([0.0, 0.0, 0.0], dtype=np.float32)     # 记录上一次的root_trans，用于计算base_lin_vel
+        
+        # 初始化时间相关变量
+        self.last_refresh_time = time.time()  # 记录最后一次刷新时间，用于计算时间差
+        
+        dof_tmp_23 = self.default_angles[self.active_dof_idx].copy()
+        body_pos_extend_buf, body_quat_extend_buf = self.compute_fk_body_pos(dof_tmp_23)
+        self.Odom_offset = body_pos_extend_buf[-1,:].detach().numpy() - body_pos_extend_buf[0,:].detach().numpy()
+        logger.info(f'Odom_offset: {self.Odom_offset}')
 
     def _root_state_handler(self, channel, data):
         msg = state_estimator_lcmt.decode(data)
@@ -161,9 +171,15 @@ class RealWorld(BaseSim):
             traceback.print_exc()
 
     def _refresh_sim(self):
-        self.root_trans = self.root_trans_tmp.copy()
-        self.base_lin_vel = self.base_lin_vel_tmp.copy()
-        self.root_quat = self.root_quat_tmp.copy()
+        # 记录当前时间，用于计算时间差
+        current_time = time.time()
+        
+        # 计算时间差，用于计算base_lin_vel
+        dt = current_time - self.last_refresh_time
+        
+        # 更新root_trans
+        # self.root_trans = self.root_trans_tmp.copy()
+        self.root_quat = self.root_quat_tmp.copy()  # xyzw
         self.root_rpy = self.root_rpy_tmp.copy()
         self.base_ang_vel = self.base_ang_vel_tmp.copy()
         self.projected_gravity = get_gravity(self.root_quat, w_last=True)
@@ -172,11 +188,23 @@ class RealWorld(BaseSim):
         
         # 更新fast_lio数据（如果可用）
         if hasattr(self, 'fast_lio_position') and hasattr(self, 'fast_lio_quat'):
-            # 这里可以根据需要选择使用哪种定位数据
-            # 例如：self.root_trans = self.fast_lio_position.copy()
-            # 在这里使用fast_lio的雷达里程计信息，结合FK，更新root_trans，和base_lin_vel
-
-            pass
+            
+            dof_pos_23 = self.dof_pos.copy()
+            body_pos_extend_buf, body_quat_extend_buf = self.compute_fk_body_pos(dof_pos_23)
+            num_bodies = body_pos_extend_buf.size(0)
+            quat = torch.from_numpy(self.root_quat.copy())
+            body_pos_extend_buf = my_quat_rotate(quat[None, :].clone().repeat(num_bodies, 1), body_pos_extend_buf)
+            location = torch.from_numpy(self.fast_lio_position.copy())  #
+            root_trans = location - body_pos_extend_buf[-1,:] + torch.from_numpy(self.Odom_offset.copy())
+            self.root_trans = root_trans.detach().numpy()
+            self.base_lin_vel = (self.root_trans - self.old_root_trans) / dt
+            # 保存当前的root_trans作为下一次计算的old_root_trans
+            self.old_root_trans = self.root_trans.copy()
+            logger.info(f'root_trans: {self.root_trans}, base_lin_vel: {self.base_lin_vel}')
+        
+        # 更新最后刷新时间
+        self.last_refresh_time = current_time
+        
 
     def apply_action(self, action):
         action = action.squeeze(0)
@@ -265,7 +293,7 @@ class RealWorld(BaseSim):
         extend_body_pos = np.array([[0.06, 0, 0], [0.06, 0, 0], [0, 0, 0.4]])
 
         body_pos, body_quat = fk_dof(np.from_numpy(joint_pos))
-        body_quat = body_quat.roll(shifts=-1, dims=-1)
+        body_quat = body_quat.roll(shifts=-1, dims=-1)  # wxyz -> xyzw
 
         extend_curr_pos = my_quat_rotate(body_quat[extend_body_parent_ids].reshape(-1, 4),
                                                             extend_body_pos.reshape(-1, 3)).view(
