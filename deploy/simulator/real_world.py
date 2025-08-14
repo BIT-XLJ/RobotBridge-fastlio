@@ -195,7 +195,7 @@ class RealWorld(BaseSim):
             quat = torch.from_numpy(self.root_quat.copy())
             body_pos_extend_buf = my_quat_rotate(quat[None, :].clone().repeat(num_bodies, 1), body_pos_extend_buf)
             location = torch.from_numpy(self.fast_lio_position.copy())  #
-            root_trans = location - body_pos_extend_buf[-1,:] + torch.from_numpy(self.Odom_offset.copy())
+            root_trans = location - (body_pos_extend_buf[-1,:] - body_pos_extend_buf[0,:]) + torch.from_numpy(self.Odom_offset.copy())
             self.root_trans = root_trans.detach().numpy()
             self.base_lin_vel = (self.root_trans - self.old_root_trans) / dt
             # 保存当前的root_trans作为下一次计算的old_root_trans
